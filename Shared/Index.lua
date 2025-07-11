@@ -115,16 +115,17 @@ local function sided_remote_pcall(callback, player, arg1, ...)
     return pcall(callback, arg1, ...);
 end
 
+---@param eventType 'RPCEVents.Reply' | 'RPCEvents.OnError'
 ---@param eventName string
 ---@param requestId number
 ---@param result any
 ---@param player Player | nil
-local function side_remote_rpc_call(eventName, requestId, result, player)
+local function side_remote_rpc_reply(eventType, eventName, requestId, result, player)
     if (Server) then
-        call_remote("RPCEvents.Reply", player, eventName, requestId, result);
+        call_remote(eventType, player, eventName, requestId, result);
         return;
     end
-    call_remote("RPCEvents.Reply", eventName, requestId, result);
+    call_remote(eventType, eventName, requestId, result);
 end
 
 ---@see https://feedback.nanos-world.com/ideas/p/server-packages-events
@@ -179,6 +180,10 @@ subscribe_remote('RPCEvents.OnError', function(playerOrEventName, eventNameOrReq
         pendingRequests[requestId] = nil;
     end
 
+    if (Client) then
+        Console.Error(("RPC event '%s' encountered an error: %s"):format(eventName, errorMessage));
+        return;
+    end
     Console.Error(("Remote RPC event '%s' from '%s' encountered an error: %s"):format(eventName, player:GetAccountID(), errorMessage));
 end);
 
@@ -223,6 +228,7 @@ subscribe_remote('RPCEvents.Call', function(playerOrEventName, eventNameOrReques
 
     if (not eventData) then
         print(("RPC event '%s' is not registered."):format(eventName));
+        side_remote_rpc_reply('RPCEvents.OnError', eventName, requestId, "Event not registered", player);
         return;
     end
 
@@ -230,11 +236,11 @@ subscribe_remote('RPCEvents.Call', function(playerOrEventName, eventNameOrReques
 
     if (not success) then
         Console.Error(("Error while invoking remote RPC event '%s': %s"):format(eventName, result));
-        call_remote("RPCEvents.OnError", player, eventName, requestId, result);
+        side_remote_rpc_reply('RPCEvents.OnError', eventName, requestId, result, player);
         return;
     end
 
-    side_remote_rpc_call(eventName, requestId, result, player);
+    side_remote_rpc_reply('RPCEVents.Reply', eventName, requestId, result, player);
 end);
 
 subscribe_remote('RPCEvents.Reply', function(playerOrEventName, eventNameOrRequestId, requestIdOrResult, resultOrNothing)
