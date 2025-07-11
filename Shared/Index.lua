@@ -239,7 +239,7 @@ subscribe_remote('RPCEvents.Call', function(playerOrEventName, eventNameOrReques
         return;
     end
 
-    side_remote_rpc_reply('RPCEVents.Reply', eventName, requestId, result, player);
+    side_remote_rpc_reply('RPCEvents.Reply', eventName, requestId, result, player);
 end);
 
 subscribe_remote('RPCEvents.Reply', function(playerOrEventName, eventNameOrRequestId, requestIdOrResult, resultOrNothing)
