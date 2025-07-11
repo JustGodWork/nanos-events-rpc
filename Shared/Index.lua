@@ -83,14 +83,13 @@ local function rpc_subscribe(eventName, callback, isRemote)
     assert(#eventName > 0, "eventName must not be empty");
     assert(type(callback) == "function", "callback must be a function");
 
-    --- We can't clean up the events, so we don't allow re-registering the same event.
+    --- We can't clean up the events, so we are allowing re-registering the same event.
     --- @see https://feedback.nanos-world.com/ideas/p/cross-package-api-call-identification
     --- @see https://feedback.nanos-world.com/ideas/p/server-packages-events
     -- assert(not RPCEvents.Has(eventName), ("RPC event already exists: '%s'"):format(eventName));
 
     if (RPCEvents.Has(eventName)) then
         print(("RPC event '%s' is already registered, overwriting it.."):format(eventName));
-        return;
     end
 
     local packageName <const> = get_package_name();
